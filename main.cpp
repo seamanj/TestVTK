@@ -4,6 +4,26 @@
 #include "vtkCamera.h"
 #include "vtkActor.h"
 #include "vtkRenderer.h"
+#include "vtkCommand.h"
+
+
+
+class vtkMyCallback : public vtkCommand
+{
+public:
+    static vtkMyCallback *New()
+    {
+        return new vtkMyCallback;
+    }
+
+    void Execute(vtkObject *caller, unsigned long eventId, void *callData) override
+    {
+        vtkRenderer *renderer = reinterpret_cast<vtkRenderer*>(caller);
+        cout << renderer->GetActiveCamera()->GetPosition()[0] << " "
+             << renderer->GetActiveCamera()->GetPosition()[1] << " "
+             << renderer->GetActiveCamera()->GetPosition()[2] << "\n";
+    }
+};
 
 
 
@@ -28,6 +48,11 @@ int main()
     vtkRenderWindow *renWin = vtkRenderWindow::New();
     renWin->AddRenderer(ren1);
     renWin->SetSize(300, 300);
+
+    vtkMyCallback *mo1 = vtkMyCallback::New();
+    ren1->AddObserver(vtkCommand::StartEvent, mo1);
+    mo1->Delete();
+
 
     int i;
     for(int i = 0; i < 360; ++i)
