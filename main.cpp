@@ -8,23 +8,6 @@
 
 
 
-class vtkMyCallback : public vtkCommand
-{
-public:
-    static vtkMyCallback *New()
-    {
-        return new vtkMyCallback;
-    }
-
-    void Execute(vtkObject *caller, unsigned long eventId, void *callData) override
-    {
-        vtkRenderer *renderer = reinterpret_cast<vtkRenderer*>(caller);
-        cout << renderer->GetActiveCamera()->GetPosition()[0] << " "
-             << renderer->GetActiveCamera()->GetPosition()[1] << " "
-             << renderer->GetActiveCamera()->GetPosition()[2] << "\n";
-    }
-};
-
 
 
 int main()
@@ -40,31 +23,37 @@ int main()
     vtkActor *coneActor = vtkActor::New();
     coneActor->SetMapper(coneMapper);
 
-    vtkRenderer *ren1 = vtkRenderer::New();
-    ren1->AddActor(coneActor);
-    ren1->SetBackground(0.1, 0.2, 0.4);
+    vtkRenderer *ren1= vtkRenderer::New();
+    ren1->AddActor( coneActor );
+    ren1->SetBackground( 0.1, 0.2, 0.4 );
+    ren1->SetViewport(0.0, 0.0, 0.5, 1.0);
 
+    vtkRenderer *ren2= vtkRenderer::New();
+    ren2->AddActor( coneActor );
+    ren2->SetBackground( 0.2, 0.3, 0.5 );
+    ren2->SetViewport(0.5, 0.0, 1.0, 1.0);
 
     vtkRenderWindow *renWin = vtkRenderWindow::New();
     renWin->AddRenderer(ren1);
-    renWin->SetSize(300, 300);
+    renWin->AddRenderer( ren2 );
+    renWin->SetSize( 600, 300 );
 
-    vtkMyCallback *mo1 = vtkMyCallback::New();
-    ren1->AddObserver(vtkCommand::StartEvent, mo1);
-    mo1->Delete();
-
+    ren1->ResetCamera();
+    ren1->GetActiveCamera()->Azimuth(90);
 
     int i;
     for(int i = 0; i < 360; ++i)
     {
         renWin->Render();
         ren1->GetActiveCamera()->Azimuth(1);
+        ren2->GetActiveCamera()->Azimuth( 1 );
     }
 
     cone->Delete();
     coneMapper->Delete();
     coneActor->Delete();
     ren1->Delete();
+    ren2->Delete();
     renWin->Delete();
 
 }
