@@ -5,9 +5,25 @@
 #include "vtkCamera.h"
 #include "vtkActor.h"
 #include "vtkRenderer.h"
+#include "vtkCommand.h"
+#include "vtkBoxWidget.h"
+#include "vtkTransform.h"
 #include "vtkInteractorStyleTrackballCamera.h"
 
-
+class vtkMyCallback : public vtkCommand
+{
+public:
+  static vtkMyCallback *New()
+    { return new vtkMyCallback; }
+  void Execute(vtkObject *caller, unsigned long, void*) override
+  {
+      vtkTransform *t = vtkTransform::New();
+      vtkBoxWidget *widget = reinterpret_cast<vtkBoxWidget*>(caller);
+      widget->GetTransform(t);
+      widget->GetProp3D()->SetUserTransform(t);
+      t->Delete();
+  }
+};
 
 
 int main()
@@ -41,6 +57,19 @@ int main()
       vtkInteractorStyleTrackballCamera::New();
     iren->SetInteractorStyle(style);
 
+
+    vtkBoxWidget *boxWidget = vtkBoxWidget::New();
+    boxWidget->SetInteractor(iren);
+    boxWidget->SetPlaceFactor(1.25);
+
+    boxWidget->SetProp3D(coneActor);
+    boxWidget->PlaceWidget();
+    vtkMyCallback *callback = vtkMyCallback::New();
+    boxWidget->AddObserver(vtkCommand::InteractionEvent, callback);
+
+    boxWidget->On();
+
+
     iren->Initialize();
     iren->Start();
 
@@ -48,6 +77,8 @@ int main()
     cone->Delete();
     coneMapper->Delete();
     coneActor->Delete();
+    callback->Delete();
+    boxWidget->Delete();
     ren1->Delete();
     renWin->Delete();
     iren->Delete();
